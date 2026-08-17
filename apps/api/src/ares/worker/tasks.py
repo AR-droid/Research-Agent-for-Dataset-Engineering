@@ -15,7 +15,9 @@ from ares.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-async def _publish_status(redis_client, run_id: str, status: str, stage: str | None = None) -> None:
+from typing import Any
+
+async def _publish_status(redis_client: Any, run_id: str, status: str, stage: str | None = None) -> None:
     message = json.dumps({"run_id": run_id, "status": status, "stage": stage})
     await redis_client.publish(f"agent_run_{run_id}", message)
     logger.info(f"Published to agent_run_{run_id}: {message}")
@@ -25,7 +27,7 @@ async def _execute_workflow_async(run_id_str: str) -> None:
     logger.info(f"Starting workflow for run_id: {run_id_str}")
     run_id = UUID(run_id_str)
     settings = get_settings()
-    redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+    redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)  # type: ignore
     
     try:
         async with async_session_maker() as session:
@@ -61,8 +63,8 @@ async def _execute_workflow_async(run_id_str: str) -> None:
             ]
             
             start_idx = 0
-            if agent_run.current_stage in stages:
-                start_idx = stages.index(agent_run.current_stage)
+            if agent_run.current_stage and AgentStage(agent_run.current_stage) in stages:
+                start_idx = stages.index(AgentStage(agent_run.current_stage))
 
             for stage in stages[start_idx:]:
                 # Check cancellation
@@ -112,10 +114,10 @@ async def _execute_workflow_async(run_id_str: str) -> None:
                 await _publish_status(redis_client, run_id_str, agent_run.status, agent_run.current_stage)
         raise e
     finally:
-        await redis_client.aclose()
+        await redis_client.aclose()  # type: ignore
 
 @celery_app.task(bind=True, name="ares.worker.tasks.execute_workflow")
-def execute_workflow(self, run_id: str) -> dict:
+def execute_workflow(self: Any, run_id: str) -> dict[str, str]:
     """
     Celery task that acts as a state machine for an AgentRun.
     """

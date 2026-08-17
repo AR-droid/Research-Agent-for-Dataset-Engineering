@@ -2,6 +2,10 @@ pyproject.toml
 src/ares/__init__.py
 src/ares/config.py
 src/ares/main.py
+src/ares/agents/agents.py
+src/ares/agents/base.py
+src/ares/agents/schemas.py
+src/ares/agents/tools/research_tools.py
 src/ares/api/__init__.py
 src/ares/api/deps.py
 src/ares/api/middleware.py
@@ -10,10 +14,12 @@ src/ares/api/v1/auth.py
 src/ares/api/v1/health.py
 src/ares/api/v1/organizations.py
 src/ares/api/v1/projects.py
+src/ares/api/v1/websockets.py
 src/ares/db/__init__.py
 src/ares/db/engine.py
 src/ares/db/tables.py
 src/ares/db/migrations/env.py
+src/ares/db/migrations/versions/8112432c1ee8_initial_schema.py
 src/ares/domain/enums.py
 src/ares/domain/exceptions.py
 src/ares/domain/models.py
@@ -26,6 +32,8 @@ src/ares/services/__init__.py
 src/ares/services/auth_service.py
 src/ares/services/organization_service.py
 src/ares/services/project_service.py
+src/ares/worker/celery_app.py
+src/ares/worker/tasks.py
 src/ares_api.egg-info/PKG-INFO
 src/ares_api.egg-info/SOURCES.txt
 src/ares_api.egg-info/dependency_links.txt

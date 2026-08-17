@@ -21,6 +21,10 @@ dependencies = [
     "structlog>=24.1.0",
     "python-multipart>=0.0.9",
     "python-socketio>=5.11.0",
+    "langchain>=0.1.0",
+    "langchain-google-genai>=0.0.9",
+    "beautifulsoup4>=4.12.0",
+    "duckduckgo-search>=5.0.0",
 ]
 
 [project.optional-dependencies]
