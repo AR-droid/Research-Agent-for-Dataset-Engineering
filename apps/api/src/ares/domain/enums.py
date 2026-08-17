@@ -1,0 +1,120 @@
+from __future__ import annotations
+from enum import StrEnum
+
+class UserStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    SUSPENDED = "SUSPENDED"
+
+class MembershipRole(StrEnum):
+    OWNER = "OWNER"
+    ADMIN = "ADMIN"
+    RESEARCHER = "RESEARCHER"
+    REVIEWER = "REVIEWER"
+    VIEWER = "VIEWER"
+
+class ProjectStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
+
+class DatasetStatus(StrEnum):
+    DRAFT = "DRAFT"
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
+
+class DocumentProcessingStatus(StrEnum):
+    DISCOVERED = "DISCOVERED"
+    DOWNLOADING = "DOWNLOADING"
+    DOWNLOADED = "DOWNLOADED"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    FAILED = "FAILED"
+
+class RecordStatus(StrEnum):
+    DRAFT = "DRAFT"
+    PENDING_REVIEW = "PENDING_REVIEW"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    EDITED = "EDITED"
+
+class ValidationStatus(StrEnum):
+    VERIFIED = "VERIFIED"
+    PROBABLE = "PROBABLE"
+    UNCERTAIN = "UNCERTAIN"
+    CONFLICTING = "CONFLICTING"
+    MISSING = "MISSING"
+
+class ReviewTaskStatus(StrEnum):
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    RESOLVED = "RESOLVED"
+
+class ReviewTaskType(StrEnum):
+    LOW_CONFIDENCE = "LOW_CONFIDENCE"
+    CONFLICT = "CONFLICT"
+    AMBIGUOUS_DUPLICATE = "AMBIGUOUS_DUPLICATE"
+    UNSUPPORTED = "UNSUPPORTED"
+    SCHEMA_AMBIGUITY = "SCHEMA_AMBIGUITY"
+
+class ReviewDecision(StrEnum):
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
+    EDIT = "EDIT"
+    UNRESOLVED = "UNRESOLVED"
+
+class AgentRunStatus(StrEnum):
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+class AgentStage(StrEnum):
+    PLANNING = "PLANNING"
+    PLAN_REVIEW = "PLAN_REVIEW"
+    DISCOVERING = "DISCOVERING"
+    ACQUIRING = "ACQUIRING"
+    PROCESSING = "PROCESSING"
+    EXTRACTING = "EXTRACTING"
+    VALIDATING = "VALIDATING"
+    DEDUPLICATING = "DEDUPLICATING"
+    CONFLICT_RESOLUTION = "CONFLICT_RESOLUTION"
+    REVIEW = "REVIEW"
+    PUBLISHING = "PUBLISHING"
+    COMPLETED = "COMPLETED"
+
+class ConflictStatus(StrEnum):
+    DETECTED = "DETECTED"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    RESOLVED = "RESOLVED"
+    ACCEPTED = "ACCEPTED"
+
+class ExportFormat(StrEnum):
+    CSV = "CSV"
+    JSON = "JSON"
+    JSONL = "JSONL"
+    PARQUET = "PARQUET"
+
+class ExportStatus(StrEnum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+class SourceProvider(StrEnum):
+    OPENALEX = "OPENALEX"
+    SEMANTIC_SCHOLAR = "SEMANTIC_SCHOLAR"
+    ARXIV = "ARXIV"
+    MANUAL = "MANUAL"
+
+class SchemaFieldType(StrEnum):
+    TEXT = "TEXT"
+    NUMBER = "NUMBER"
+    INTEGER = "INTEGER"
+    BOOLEAN = "BOOLEAN"
+    DATE = "DATE"
+    ENUM = "ENUM"
+    LIST = "LIST"

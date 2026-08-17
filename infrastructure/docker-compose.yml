@@ -1,0 +1,167 @@
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ares}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ares}
+      POSTGRES_DB: ${POSTGRES_DB:-ares}
+    networks:
+      - ares-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ares} -d ${POSTGRES_DB:-ares}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - ares-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-admin123}
+    command: server /data --console-address ":9001"
+    networks:
+      - ares-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-create-bucket:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY:-admin} ${MINIO_SECRET_KEY:-admin123};
+      /usr/bin/mc mb myminio/${MINIO_BUCKET:-ares-documents} --ignore-existing;
+      /usr/bin/mc policy set public myminio/${MINIO_BUCKET:-ares-documents};
+      exit 0;
+      "
+    networks:
+      - ares-network
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/api:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgres://ares:ares@postgres:5432/ares}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-admin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-admin123}
+      - MINIO_BUCKET=${MINIO_BUCKET:-ares-documents}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-default-insecure-key}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENALEX_EMAIL=${OPENALEX_EMAIL}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - ares-network
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    command: celery -A ares.workers.celery_app worker --loglevel=info
+    volumes:
+      - ../apps/api:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgres://ares:ares@postgres:5432/ares}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-admin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-admin123}
+      - MINIO_BUCKET=${MINIO_BUCKET:-ares-documents}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ares-network
+
+  beat:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    command: celery -A ares.workers.celery_app beat --loglevel=info
+    volumes:
+      - ../apps/api:/app
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - DATABASE_URL=${DATABASE_URL:-postgres://ares:ares@postgres:5432/ares}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ares-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      target: builder
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../apps/web:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    networks:
+      - ares-network
+
+networks:
+  ares-network:
+    name: ares-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:

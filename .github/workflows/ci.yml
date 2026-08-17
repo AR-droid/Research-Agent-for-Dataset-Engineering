@@ -1,0 +1,112 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint-backend:
+    name: Lint Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          cd apps/api
+          python -m pip install --upgrade pip
+          pip install ruff mypy
+          pip install -e .[dev]
+      - name: Run Ruff check
+        run: cd apps/api && ruff check .
+      - name: Run Ruff format check
+        run: cd apps/api && ruff format --check .
+      - name: Run Mypy
+        run: cd apps/api && mypy .
+
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install dependencies
+        run: cd apps/web && npm ci
+      - name: Run ESLint
+        run: cd apps/web && npx eslint .
+      - name: Run Prettier check
+        run: cd apps/web && npx prettier --check .
+      - name: Run TypeScript check
+        run: cd apps/web && npx tsc --noEmit
+
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ares
+          POSTGRES_PASSWORD: ares
+          POSTGRES_DB: ares
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          cd apps/api
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          pip install -e .[test]
+      - name: Run pytest
+        env:
+          DATABASE_URL: postgres://ares:ares@localhost:5432/ares
+          REDIS_URL: redis://localhost:6379/0
+        run: cd apps/api && pytest
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install dependencies
+        run: cd apps/web && npm ci
+      - name: Run vitest
+        run: cd apps/web && npm run test --if-present

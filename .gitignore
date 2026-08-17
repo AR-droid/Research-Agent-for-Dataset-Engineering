@@ -1,0 +1,47 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Claude Code - local project instructions
+CLAUDE.md
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Local databases / artifacts
+*.db
+*.sqlite
+*.sqlite3
+coverage/
+
+# Infrastructure
+infrastructure/.env
+.gemini/
+
+# Antigravity artifacts
+GEMINI.md
+AGENTS.md
+
+# Alembic
+alembic.ini
+alembic/versions/*.pyc
+.alembic_stamp
