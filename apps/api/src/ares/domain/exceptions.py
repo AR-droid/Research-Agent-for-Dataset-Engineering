@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class AresError(Exception):
     def __init__(self, message: str, code: str = "internal_error") -> None:
         self.message = message

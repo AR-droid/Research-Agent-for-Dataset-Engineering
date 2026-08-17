@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
+
 from fastapi import APIRouter, Depends
-from ares.api.deps import DbSession, CurrentUser, require_role
-from ares.domain.models import OrganizationCreate, OrganizationResponse, MembershipCreate, MembershipResponse
+
+from ares.api.deps import CurrentUser, DbSession, require_role
 from ares.domain.enums import MembershipRole
+from ares.domain.models import (
+    MembershipCreate,
+    MembershipResponse,
+    OrganizationCreate,
+    OrganizationResponse,
+)
 from ares.services.organization_service import OrganizationService
 
 router = APIRouter()
@@ -36,6 +44,6 @@ async def add_member(
     data: MembershipCreate, 
     user: CurrentUser, 
     db: DbSession,
-    _=Depends(require_role(MembershipRole.OWNER, MembershipRole.ADMIN))
+    _: Any = Depends(require_role(MembershipRole.OWNER, MembershipRole.ADMIN)) # noqa: B008
 ) -> MembershipResponse:
     return await OrganizationService.add_member(org_id, data.user_id, data.role, user.id, db)

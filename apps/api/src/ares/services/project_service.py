@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from ares.domain.models import ProjectCreate, ProjectUpdate, ProjectResponse, PaginatedResponse
-from ares.domain.exceptions import NotFoundError, AuthorizationError
-from ares.domain.enums import MembershipRole
-from ares.repositories.project_repo import ProjectRepository
-from ares.repositories.organization_repo import OrganizationRepository
+
 from ares.db.tables import ResearchProject
+from ares.domain.enums import MembershipRole
+from ares.domain.exceptions import AuthorizationError, NotFoundError
+from ares.domain.models import PaginatedResponse, ProjectCreate, ProjectResponse, ProjectUpdate
+from ares.repositories.organization_repo import OrganizationRepository
+from ares.repositories.project_repo import ProjectRepository
+
 
 class ProjectService:
     @staticmethod

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import structlog
 
-from ares.config import get_settings
-from ares.api.v1 import api_router
-from ares.db.engine import init_db, close_db
 from ares.api.middleware import setup_middlewares
+from ares.api.v1 import api_router
+from ares.config import get_settings
+from ares.db.engine import close_db, init_db
 
 logger = structlog.get_logger()
 

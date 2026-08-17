@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from enum import StrEnum
+
 
 class UserStatus(StrEnum):
     ACTIVE = "ACTIVE"
@@ -67,6 +69,8 @@ class ReviewDecision(StrEnum):
 class AgentRunStatus(StrEnum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
+    WAITING = "WAITING"
+    REQUIRES_REVIEW = "REQUIRES_REVIEW"
     PAUSED = "PAUSED"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"

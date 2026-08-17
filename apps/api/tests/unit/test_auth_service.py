@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import pytest
 from uuid import uuid4
-from ares.services.auth_service import AuthService
+
+import pytest
+
 from ares.domain.exceptions import AuthenticationError
+from ares.services.auth_service import AuthService
+
 
 def test_password_hashing() -> None:
     password = "secure_password"

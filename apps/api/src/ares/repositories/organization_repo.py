@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
-from typing import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from ares.db.tables import Organization, Membership
-from ares.repositories.base import BaseRepository
+
+from ares.db.tables import Membership, Organization
 from ares.domain.enums import MembershipRole
+from ares.repositories.base import BaseRepository
+
 
 class OrganizationRepository(BaseRepository[Organization]):
     def __init__(self, session: AsyncSession) -> None:

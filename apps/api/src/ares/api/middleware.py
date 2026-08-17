@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from typing import Callable
+from collections.abc import Awaitable, Callable
+
+import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
-import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ares.domain.exceptions import AresError
@@ -12,7 +13,7 @@ from ares.domain.exceptions import AresError
 logger = structlog.get_logger()
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.state.request_id = request_id
         
@@ -27,7 +28,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         await logger.ainfo("Request started")
         response = await call_next(request)
         await logger.ainfo("Request completed", status_code=response.status_code)

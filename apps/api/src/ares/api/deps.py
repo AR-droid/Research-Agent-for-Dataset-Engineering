@@ -1,19 +1,20 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from typing import Annotated
-from collections.abc import AsyncGenerator
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ares.db.engine import get_async_session
-from ares.db.tables import User, Membership
-from ares.services.auth_service import AuthService
-from ares.repositories.user_repo import UserRepository
-from ares.repositories.organization_repo import OrganizationRepository
+from ares.db.tables import Membership, User
 from ares.domain.enums import MembershipRole, UserStatus
-from ares.domain.exceptions import AuthenticationError, AuthorizationError
+from ares.domain.exceptions import AuthenticationError
+from ares.repositories.organization_repo import OrganizationRepository
+from ares.repositories.user_repo import UserRepository
+from ares.services.auth_service import AuthService
 
 security = HTTPBearer()
 
@@ -50,7 +51,7 @@ async def get_current_user(token: TokenDep, db: DbSession) -> User:
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
-def require_role(*allowed_roles: MembershipRole):
+def require_role(*allowed_roles: MembershipRole) -> Callable[[UUID, CurrentUser, DbSession], Awaitable[Membership]]:
     async def role_checker(
         org_id: UUID, 
         user: CurrentUser, 

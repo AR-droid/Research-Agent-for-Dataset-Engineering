@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from ares.domain.enums import UserStatus, MembershipRole
+from ares.domain.enums import MembershipRole, UserStatus
+
 
 def test_enums() -> None:
     assert UserStatus.ACTIVE == "ACTIVE"

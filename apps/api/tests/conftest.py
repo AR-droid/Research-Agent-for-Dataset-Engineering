@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
+
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from ares.main import app
-from ares.db.tables import Base, User
 from ares.api.deps import get_db
+from ares.db.tables import Base, User
+from ares.main import app
 from ares.services.auth_service import AuthService
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/ares_test"

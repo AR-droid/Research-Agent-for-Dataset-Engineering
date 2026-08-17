@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from typing import Generic, TypeVar, Sequence
+from collections.abc import Sequence
 from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from ares.db.tables import Base
 
-T = TypeVar("T", bound=Base)
 
-class BaseRepository(Generic[T]):
+class BaseRepository[T: Base]:
     def __init__(self, session: AsyncSession, model_cls: type[T]) -> None:
         self.session = session
         self.model_cls = model_cls

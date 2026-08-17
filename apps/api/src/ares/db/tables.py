@@ -1,21 +1,36 @@
 from __future__ import annotations
 
-from datetime import datetime, date
-from uuid import UUID
+from datetime import date, datetime
 from typing import Any
+from uuid import UUID
+
 from sqlalchemy import (
-    String, DateTime, Boolean, Date, Integer, Float, ForeignKey, UniqueConstraint, Index
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 
 from ares.domain.enums import (
-    UserStatus, MembershipRole, ProjectStatus, DatasetStatus, DocumentProcessingStatus,
-    RecordStatus, ValidationStatus, ReviewTaskStatus, ReviewTaskType, ReviewDecision,
-    AgentRunStatus, AgentStage, ConflictStatus, ExportFormat, ExportStatus,
-    SourceProvider, SchemaFieldType
+    AgentRunStatus,
+    ConflictStatus,
+    DatasetStatus,
+    DocumentProcessingStatus,
+    ExportStatus,
+    ProjectStatus,
+    RecordStatus,
+    ReviewTaskStatus,
+    UserStatus,
+    ValidationStatus,
 )
+
 
 class Base(DeclarativeBase):
     pass
@@ -139,7 +154,7 @@ class DatasetFieldValue(Base):
     value_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     validation_status: Mapped[str] = mapped_column(String(50), default=ValidationStatus.UNCERTAIN)
-    source_evidence_id: Mapped[UUID | None] = mapped_column(PGUUID(as_uuid=True), nullable=True)
+    claim_id: Mapped[UUID | None] = mapped_column(ForeignKey("claims.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
@@ -156,6 +171,13 @@ class Source(Base):
     venue: Mapped[str | None] = mapped_column(String(500), nullable=True)
     metadata_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     canonical_url: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    publisher: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    author: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    retrieval_timestamp: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    content_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    source_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    extraction_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    error_state: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
@@ -188,6 +210,15 @@ class Evidence(Base):
     character_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quoted_text: Mapped[str | None] = mapped_column(String, nullable=True)
     extraction_context: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    evidence_id: Mapped[UUID] = mapped_column(ForeignKey("evidence.id", ondelete="CASCADE"), nullable=False)
+    project_id: Mapped[UUID] = mapped_column(ForeignKey("research_projects.id", ondelete="CASCADE"), nullable=False)
+    claim_text: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 class AgentRun(Base):
@@ -277,5 +308,5 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    audit_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

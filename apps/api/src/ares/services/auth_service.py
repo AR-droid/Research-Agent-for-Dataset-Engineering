@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
+
+from jose import JWTError, jwt
 from passlib.context import CryptContext
-from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ares.config import get_settings
 from ares.domain.exceptions import AuthenticationError, ConflictError
-from ares.domain.models import UserResponse, TokenResponse
+from ares.domain.models import TokenResponse, UserResponse
 from ares.repositories.user_repo import UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -17,23 +18,23 @@ settings = get_settings()
 class AuthService:
     @staticmethod
     def hash_password(password: str) -> str:
-        return pwd_context.hash(password)
+        return str(pwd_context.hash(password))
 
     @staticmethod
     def verify_password(plain: str, hashed: str) -> bool:
-        return pwd_context.verify(plain, hashed)
+        return bool(pwd_context.verify(plain, hashed))
 
     @staticmethod
     def create_access_token(user_id: UUID, role: str = "user") -> str:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode = {"exp": expire, "sub": str(user_id), "role": role, "type": "access"}
-        return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        return str(jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM))
 
     @staticmethod
     def create_refresh_token(user_id: UUID) -> str:
-        expire = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
         to_encode = {"exp": expire, "sub": str(user_id), "type": "refresh"}
-        return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        return str(jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM))
 
     @staticmethod
     def decode_token(token: str) -> dict[str, str]:

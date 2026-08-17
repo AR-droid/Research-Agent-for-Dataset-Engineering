@@ -1,10 +1,12 @@
 from __future__ import annotations
-from datetime import datetime, date
-from uuid import UUID
-from typing import Generic, TypeVar, Any
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from ares.domain.enums import UserStatus, MembershipRole, ProjectStatus
+from datetime import date, datetime
+from typing import Any, TypeVar
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+from ares.domain.enums import MembershipRole, ProjectStatus, UserStatus
 
 T = TypeVar("T")
 
@@ -101,7 +103,7 @@ class ErrorResponse(BaseSchema):
     code: str
     details: Any | None = None
 
-class PaginatedResponse(BaseSchema, Generic[T]):
+class PaginatedResponse[T](BaseSchema):
     items: list[T]
     total: int
     offset: int

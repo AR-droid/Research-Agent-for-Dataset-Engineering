@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel
-from ares.api.deps import DbSession, CurrentUser
-from ares.domain.models import UserCreate, UserLogin, UserResponse, TokenResponse
+
+from ares.api.deps import CurrentUser, DbSession
+from ares.domain.models import TokenResponse, UserCreate, UserLogin, UserResponse
 from ares.services.auth_service import AuthService
 
 router = APIRouter()

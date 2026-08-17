@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
-from typing import Sequence
-from sqlalchemy import select, and_
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from ares.db.tables import ResearchProject
 from ares.repositories.base import BaseRepository
+
 
 class ProjectRepository(BaseRepository[ResearchProject]):
     def __init__(self, session: AsyncSession) -> None:
